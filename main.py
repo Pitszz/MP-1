@@ -47,12 +47,24 @@ def movement(lengths, move_set, level_info): # function where the level is modif
 # as long as there are moves left
 
 
-def screen(lengths, move_set, level_info): # where the screen is modified
+def screen(lengths, move_set, level_info): # where the level is modified
     clear_screen()
-    dirty_work(lengths, move_set, level_info) 
+    dirty_work(lengths, move_set, level_info) #function where the computations happen
     print('\n'.join(level_info['level']))
     movement(lengths, move_set, level_info)
 
 
-def dirty_work(lengths, move_set, level_info): # behind the scenes changes
+def dirty_work(lengths, move_set, level_info): # we modify level_info['level'] directly
     return None
+
+
+def final_state(lengths, move_set, level_info): # cleaner version of end screen.
+    clear_screen()
+    print('\n'.join(level_info['level']))
+    print(f'Previous Moves: {move_set['your_move']}')
+    print(f'You had {move_set['moves_left']} moves left. That\'s pretty slow.')
+    print(f'You gained {level_info['points']} points. Good job, I guess.')
+
+
+
+main()
