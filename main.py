@@ -36,7 +36,6 @@ def main():
             'points': 0, 
             'previous_state': [],
             'switch': True, 
-            'eggs_in_field': True # switch that determines if there are eggs in field
         }
         lengths.update({'cols': len(level_info['level'][0]) - 1}) # 0 to c - 1
 
@@ -76,7 +75,8 @@ def display(lengths, move_set, level_info):
     Not unit-testable (I think), it's basically a central function where different, smaller functions are called.
 
     """
-    while end_state_detect(move_set['moves_left'], level_info['eggs_in_field']): # main end_state detection
+    while end_state_detect(lengths['rows'], move_set['moves_left'], level_info['level']): # main end_state detection
+    # it does feel a bit weird that end_state detection is appended to display() & not game_state()
         print('\n'.join(level_info['level'])) # prints the level before & after calculations
         print(ui(lengths, move_set, level_info)) 
         move_set['current_move'] += player_input()
@@ -87,9 +87,6 @@ def display(lengths, move_set, level_info):
             print('Invalid Move, clearing...')
             time.sleep(0.4)
             clear_screen()
-
-# ideally, what should happen is game_state() 
-# finishes all of its bullshit & returns its value to display() to print
 
 
 
@@ -126,12 +123,23 @@ def ui(lengths, move_set, level_info): # unit-testable, use mock values for valu
     return '\n'.join((previous, remaining, ui_points))
 
 
-def end_state_detect(moves_left, eggs_in_field): # unit-testable
-    # returns True if moves_left & eggs_in_field are both True
-    if moves_left > 0 and eggs_in_field:
+def end_state_detect(rows, moves_left, level): # unit-testable
+    # returns True if moves_left & eggs_check are True
+    if moves_left > 0 and eggs_in_field(rows, level):
         return True
     else:
         return False
+
+def eggs_in_field(rows, level): # one of the end conditions.
+    all_elements_in_map = set()
+    for row_ind in range(rows + 1):
+            all_elements_in_map.update(*level[row_ind])
+    if '0' in all_elements_in_map:
+        return True
+
+    else:
+        return False
+
 
 
 def chain_moves():
@@ -159,24 +167,22 @@ def reset():
 # decrements moves left
 # calls egg_check
 def game_state(lengths, move_set, level_info): # where the level is modified
-    while level_info['switch']: # switch is a variable that tells whether any more eggs can move or not.
+    while egg_switch(): # switch is a variable that tells whether any more eggs can move or not.
         level_info['level'] = split_level(lengths['rows'], level_info['level']) # splits the level into a list
         clear_screen()
         time.sleep(0.15)
-        if directions(move_set['current_move']): #function where the computations happen
+        if iteration_direction(move_set['current_move']):
             towards = left_up(lengths['rows'], lengths['cols']) 
         else:
             towards = right_down(lengths['rows'], lengths['cols'])
 
-        level_info['level'] = check_every_row(towards, move_set, level_info)
+        level_info['level'] = row_egg_check(towards, move_set, level_info)
         print('\n'.join(merge_level(lengths['rows'], level_info['level'])))
-        # level_info['level'] = merge_level(lengths['rows'], level_info['level'])
 
     level_info['switch'] = True
     move_set['your_move'] += (move_set['current_move'])
     move_set['current_move'] = ''
     move_set['moves_left'] -= 1
-    egg_check(lengths, move_set, level_info)
     clear_screen()
 
 
@@ -194,7 +200,7 @@ def merge_level(rows, level): # really similar to split_level but instead of spl
     return level
 
 # directions function overhaul.
-def directions(current_move):
+def iteration_direction(current_move):
     positive = set(('l', 'f'))
     negative = set(('r', 'b'))
     if current_move in positive:
@@ -206,57 +212,6 @@ def directions(current_move):
 
 def egg_switch(): 
     pass
-
-
-def egg_check(lengths, move_set, level_info):
-    all_elements_in_map = set()
-    for row_ind in range(lengths['rows'] + 1):
-            all_elements_in_map.update(*level_info['level'][row_ind])
-    if '0' not in all_elements_in_map:
-        level_info['eggs_in_field'] = False
-
-
-def left_up(rows, cols):
-    to_bottom_right = {
-    '_range_row': range(1, rows), 
-    '_range_col': range(1, cols),
-    'increment': -1,
-    'hor': 'l',
-    'ver': 'f'
-    }
-
-    return to_bottom_right
-
-
-def right_down(rows, cols):
-    to_upper_left = {
-    '_range_row': range(rows, 0, -1), 
-    '_range_col': range(cols, 0, -1),
-    'increment': 1,
-    'hor': 'r',
-    'ver': 'b'
-    }
-
-    return to_upper_left
-
-
-def check_every_row(towards, move_set, level_info):
-    blocked = set(('#', '@', '0'))
-    for row in towards['_range_row']:
-        if '0' in level_info['level'][row]:
-            for col in towards['_range_col']:
-                if level_info['level'][row][col] == '0':
-                    if move_set['current_move'] == towards['hor']:
-                        if level_info['level'][row][col + towards['increment']] not in blocked:
-                            move_set['moved_eggs'].append((row, col + towards['increment']))
-                            level_info['level'][row][col] = '.'
-
-                    if move_set['current_move'] == towards['ver']:
-                        if level_info['level'][row + towards['increment']][col] not in blocked:
-                            move_set['moved_eggs'].append((row + towards['increment'], col))
-                            level_info['level'][row][col] = '.'
-
-    return return_eggs(move_set, level_info)
 
 
 def return_eggs(move_set, level_info):
@@ -276,6 +231,108 @@ def return_eggs(move_set, level_info):
     return level_info['level']
 
 
+
+def left_up(rows, cols):
+    to_bottom_right = {
+    '_range_row': range(1, rows), 
+    '_range_col': range(1, cols),
+    'increment': -1,
+    'hor': 'l',
+    'ver': 'f'
+    }
+
+    return to_bottom_right
+
+
+def right_down(rows, cols):
+    to_upper_left = {
+    '_range_row': range(rows, 0, -1), 
+    '_range_col': range(cols - 1, 0, -1),
+    'increment': 1,
+    'hor': 'r',
+    'ver': 'b'
+    }
+
+    return to_upper_left
+
+
+def row_egg_check(towards, move_set, level_info):
+    """
+    Checks each row if there is an egg.
+    If there is, check precisely (just a term for by column)
+    If there is not, skip the row & keep iterating.
+    """
+    for row in towards['_range_row']:
+        if '0' in level_info['level'][row]:
+            level_info['level'][row] = precise_egg_check(towards, move_set, level_info['level'], row)
+        else:
+            continue
+
+    return return_eggs(move_set, level_info)
+
+def precise_egg_check(towards, move_set, level, row):
+    """
+    Checks each column of a row to see if there is an egg.
+    If there is, check if the move is horizontal or vertical # another function.
+    take its coordinates & append to moved_eggs. # another function might be better for that.
+
+    """
+    for col in towards['_range_col']:
+        if level[row][col] == '0':
+            coords = (row, col)
+            level[row][col] = horizo_vertical(towards, move_set, level, coords)
+
+    return level[row]
+
+
+def horizo_vertical(towards, move_set, level, coords):
+    row, col = [*coords]
+    if direction_check(move_set['current_move'], towards):
+        return horizontal_increment(towards, move_set, level, coords)
+    else:
+        return vertical_increment(towards, move_set, level, coords)
+
+
+def horizontal_increment(towards, move_set, level, coords):
+    row, col = [*coords]
+    point = level[row][col]
+    neighbour = (row, col + towards['increment'])
+    if blocked_neighbour(neighbour, level):
+        move_set['moved_eggs'].append(neighbour)
+        point = '.'
+
+    return point
+
+
+def vertical_increment(towards, move_set, level, coords):
+    row, col = [*coords]
+    point = level[row][col]
+    neighbour = (row + towards['increment'], col)
+    if blocked_neighbour(neighbour, level):
+        move_set['moved_eggs'].append(neighbour)
+        point = '.'
+
+    return point
+
+
+def blocked_neighbour(neighbour, level):
+    row, col = [*neighbour]
+    blocked = set(('#', '@', '0'))
+    if level[row][col] not in blocked:
+        return True
+    else:
+        return False
+
+
+def direction_check(current_move, towards):
+    if current_move == towards['hor']:
+        return True
+
+    else:
+        assert current_move == towards['ver']
+        return False
+
+
 def game_over(lengths, move_set, level_info): # cleaner version of end screen.
     clear_screen()
     print('\n'.join(level_info['level']))
@@ -284,5 +341,7 @@ def game_over(lengths, move_set, level_info): # cleaner version of end screen.
     print(f'You gained {level_info['points']} points. Good job, I guess.')
 
 
+# for testing purposes:
+# Wall (#), Egg (0), Grass(.), Empty nest (O), Full nest (@), Frying pan(P)
 if __name__ == '__main__':
     main()
