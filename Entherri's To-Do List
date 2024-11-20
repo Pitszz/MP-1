@@ -1,7 +1,7 @@
 Entherri's to-do list: From highest-priority to lowest -Entherri
 1. --- Add a chain moves function [DONE] ---
-2. Add an undo function (this has a limit of 1 undo per level)
-3. Add a reset function (this resets the whole level.)
+2. --- Add an undo function (this has a limit of 1 undo per level) [DONE] ---
+3. --- Add a reset function (this resets the whole level.) [DONE]
 4. Add an exit function inside level
 5. A main menu
 6. Multiple stages
