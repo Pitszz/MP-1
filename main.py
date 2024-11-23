@@ -214,14 +214,15 @@ def special_moves_list(lengths, starting_info, move_set, level_info):
 
 def quit_game(move_set):
     while True:
-        exit_input = input('Are you sure you want to quit the game? [Y/N]')
+        exit_input = input('Are you sure you want to quit the game? [Y/N]: ')
         if exit_input.upper() == 'Y':
-            raise ('Thank you for playing.')
+            raise StopIteration('Thank you for playing.')
         elif exit_input.upper() == 'N':
             move_set['current_move'] = ''
             print('The game continues.')
             time.sleep(0.5)
             clear_screen()
+            break
             
         else:
             print('Haha, very funny.')
@@ -243,7 +244,7 @@ def reset_level(lengths, starting_info, move_set, level_info):
 
 def exit_level(lengths, starting_info, move_set, level_info):
     while True:
-        go_to_level_screen = input('Go back to level selection screen? [Y/N]')
+        go_to_level_screen = input('Go back to level selection screen? [Y/N]: ')
         if go_to_level_screen.upper() == 'Y':
             return level_screen()
         elif go_to_level_screen.upper() == 'N':
@@ -310,7 +311,7 @@ def game_state(lengths, starting_info, move_set, level_info): # Not unit-testabl
 
         level_info['level'] = row_egg_check(towards, move_set, level_info)
         print(merge_level(lengths['rows'], level_info['level']))
-        time.sleep(0.5)
+        time.sleep(0.25)
         clear_screen()
 
     
@@ -325,7 +326,7 @@ def updated_game_states(level_info, move_set): # unit-testable
     Also turns on egg_switch allowing game_state() to function again once it is called after display().
     """
     level_info['egg_switch'] = True
-    level_info['points_gained'].append(level_info['points'] - level_info['points_gained'][-1])
+    level_info['points_gained'].append(level_info['points'] - sum(level_info['points_gained']))
     move_set['your_move'] += (move_set['current_move'].lower())
     move_set['current_move'] = ''
     move_set['moves_left'] -= 1
