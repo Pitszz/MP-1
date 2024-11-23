@@ -372,7 +372,7 @@ def return_eggs(move_set, level_info):
             elif level_info['level'][r][c] == '🪹':
                 level_info['level'][r][c] = '🪺'
                 level_info['points'] += 10 + move_set['moves_left']
-            elif level_info['level'][r][c] == '🍳':
+            elif level_info['level'][r][c] in set(('🍳', ' ')):
                 level_info['points'] -= 5
         move_set['moved_eggs'].clear()
 
