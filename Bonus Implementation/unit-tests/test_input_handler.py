@@ -77,6 +77,7 @@ def test_get_moves_to_process() -> None:
     assert [*get_moves_to_process(["f", "r", "b", "l"] * 10, 3)] == ["f", "r", "b"]
     assert [*get_moves_to_process(["l", "r"], 10)] == ["l", "r"]
     assert [*get_moves_to_process(["l", "r", "f", "b"], 0)] == []
+    assert [*get_moves_to_process(["l", "r", "f", "b"], 20)] == ["l", "r", "f", "b"]
 
 
 def test_is_valid_input() -> None:

@@ -108,7 +108,7 @@ def get_level_name(file_name: str) -> str:
     return file_name.split(".")[0].upper()
 
 
-def undo_move(level_data: dict) -> None:
+def undo_move(level_data: dict) -> dict:
     """Undos the last move."""
     previous_moves = level_data["previous_moves"]
     undos_left = level_data["undos_left"]
@@ -131,10 +131,10 @@ def undo_move(level_data: dict) -> None:
         sleep(0.5)
 
 
-def restart_game(level_data: dict) -> None:
+def restart_game(level_data: dict) -> dict:
     """Restarts the game back to its initial states."""
     # Will only restart if we're not back in our initial state
-    if not _can_restart(level_data):
+    if not can_restart(level_data):
         print(f"\n{RED + BOLD}< Nothing to reset >{RESET}")
         sleep(0.5)
         return
@@ -147,7 +147,7 @@ def restart_game(level_data: dict) -> None:
     level_data["previous_states"] = [level_data["initial_state"]]
 
 
-def _can_restart(level_data: dict) -> bool:
+def can_restart(level_data: dict) -> bool:
     """Returns true if all the current values is not equal to their initial value"""
     return not (
         not level_data["previous_moves"]

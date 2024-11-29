@@ -26,7 +26,8 @@ def process_move(move: str, level_data: dict) -> None:
     # Update display and move until the eggs cannot move further
     while not all_eggs_blocked(level_data, direction):
         clear_screen()
-        (puzzle, score) = move_eggs(puzzle, direction, rows, cols, level_data)
+        moves_left = level_data["moves_left"]
+        (puzzle, score) = move_eggs(puzzle, direction, rows, cols, moves_left)
         score_per_move += score
         level_data["puzzle"] = puzzle
 
@@ -47,8 +48,8 @@ def move_eggs(
     direction: tuple[int, int],
     rows: int,
     cols: int,
-    level_data: dict,
-) -> list[list[str]]:
+    moves_left: int,
+) -> tuple[list[list[str]], int]:
     """
     Handles the movement of the eggs dynamically for all direction by returning a new grid with updated positions.
 
@@ -77,7 +78,7 @@ def move_eggs(
                     elif neighbor == NEST:
                         new_grid[i][j] = GRASS
                         new_grid[ni][nj] = FULL_NEST
-                        temp_score += 5 + level_data["moves_left"]
+                        temp_score += 5 + moves_left
 
                     # EGG -> PAN
                     elif neighbor in (PAN, VOID):
@@ -87,13 +88,13 @@ def move_eggs(
     return new_grid, temp_score
 
 
-def all_eggs_blocked(level_data: dict, increment: list[int]) -> bool:
+def all_eggs_blocked(level_data: dict, direction: list[int]) -> bool:
     """Returns True if all of the eggs cannot be moved further."""
     puzzle = level_data["puzzle"]
     rows, cols = level_data["rows"], level_data["cols"]
     eggs_pos = get_eggs_pos(puzzle)
 
-    (di, dj) = increment
+    (di, dj) = direction
     for i, j in eggs_pos:
         # Checks the neighbor given an increment
         ni, nj = i + di, j + dj
@@ -138,8 +139,8 @@ def get_range(rows: int, cols: int, direction: tuple[int, int]) -> tuple[range, 
 
 def is_end_state(level_data: dict) -> bool:
     """Returns true if there are no more eggs left or you have no more moves left."""
-    moves_left = level_data.get("moves_left", 0)
-    grid = level_data.get("puzzle", None)
+    moves_left = level_data["moves_left"]
+    grid = level_data["puzzle"]
 
     if moves_left <= 0 or no_eggs_left(grid):
         return True
