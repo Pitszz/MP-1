@@ -1,7 +1,7 @@
 import sys
 
 from src.core_logic import process_move, is_end_state
-from src.input_handler import get_input, get_moves_to_process
+from src.input_handler import get_input, get_moves_to_process, get_moves
 from src.level_manager import select_level, undo_move, restart_game, get_count
 from src.ui_display import (
     display_title,
@@ -18,7 +18,7 @@ FULL_NEST = "🪺"
 
 
 def initialize_game() -> None:
-    """Initializes the game by displaying the game title and help section."""
+    """Displays the title screen and help section."""
     display_title()
     display_help()
 
@@ -29,7 +29,7 @@ def main_menu() -> str:
         display_main_menu()
 
         commands = ("play", "help", "leaderboards", "board", "quit", "exit")
-        player_input = get_input("➤  ", commands)
+        player_input = get_input(input("➤  "), commands)
 
         if player_input is not None:
             return player_input
@@ -62,7 +62,7 @@ def play_game() -> None:
         moves_left = level_data["moves_left"]
 
         prompt = f"\nEnter your {BLUE + BOLD}move(s){RESET} ➤  "
-        player_input = get_input(prompt, commands, is_game=True)
+        player_input = get_moves(input(prompt), commands)
 
         # Checks whether the input is a command
         if player_input in commands:
@@ -127,7 +127,7 @@ def exit_game() -> None:
         clear_screen()
 
         prompt = f"Are you sure you want to quit? ({YES_NO}): "
-        player_input = get_input(prompt, ("yes", "y", "no", "n"))
+        player_input = get_input(input(prompt), ("yes", "y", "no", "n"))
 
         if player_input in ("yes", "y"):
             sys.exit()

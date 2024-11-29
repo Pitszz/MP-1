@@ -17,7 +17,7 @@ def select_level(folder_name: str = "levels") -> dict:
         display_levels(levels_info)
 
         prompt = f"\nChoose level {BOLD + BLUE}(1-{len(levels)}){RESET} ➤  "
-        level_id = get_input(prompt, tuple(range(1, len(levels) + 1)))
+        level_id = get_input(input(prompt), tuple(range(1, len(levels) + 1)))
 
         # Prompts again if chosen ID is invalid
         if level_id is None:
