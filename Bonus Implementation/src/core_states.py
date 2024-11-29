@@ -2,8 +2,9 @@ import sys
 
 from src.core_logic import process_move, is_end_state
 from src.input_handler import get_input, get_moves_to_process
-from src.level_manager import select_level, undo_move, restart_game, count_something
+from src.level_manager import select_level, undo_move, restart_game, get_count
 from src.ui_display import (
+    display_title,
     update_display,
     display_main_menu,
     display_help,
@@ -17,10 +18,13 @@ FULL_NEST = "🪺"
 
 
 def initialize_game() -> None:
-    pass
+    """Initializes the game by displaying the game title and help section."""
+    display_title()
+    display_help()
 
 
 def main_menu() -> str:
+    """Main menu section."""
     while True:
         display_main_menu()
 
@@ -35,6 +39,7 @@ def main_menu() -> str:
 
 
 def play_game() -> None:
+    """Handles the playing state."""
     level_data = select_level("levels")
 
     commands = (
@@ -136,8 +141,9 @@ def exit_game() -> None:
 def game_over(level_data: dict) -> None:
     """Displays the final state of the grid and summary of the game."""
     update_display(level_data)
-    points = sum(level_data["points"])
 
+    # Score summary
+    points = sum(level_data["points"])
     message = (
         f"Congratulations! You got a total of {BOLD + GREEN}{points}{RESET} points!"
     )
@@ -145,8 +151,14 @@ def game_over(level_data: dict) -> None:
         message = f"Just keep on trying! You can turn that {BOLD + RED}{points}{RESET} points to positive!"
 
     print(f"\n{message}")
+
+    # Egg summary
+    total_eggs = level_data["egg_count"]
+    nested_eggs = get_count(level_data["puzzle"], FULL_NEST)
+
     print(
-        f"You guided {level_data["egg_count"] - count_something(level_data["puzzle"], FULL_NEST)} egg(s) out of {level_data["egg_count"]}"
+        f"\nYou guided {BOLD + YELLOW}{nested_eggs}{RESET} egg(s) out of {BOLD + YELLOW}{total_eggs}{RESET}"
     )
     sleep(0.5)
+
     input(f"\n→ Press {ENTER} to go back to main menu.")

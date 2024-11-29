@@ -1,6 +1,10 @@
 from src.ui_helper import convert_to_arrows, clear_screen, color, truncate, ENTER
 from src.ui_colors import *
 from time import sleep
+from random import randint
+
+
+# Game displays
 
 
 def update_display(level_data: dict) -> None:
@@ -43,6 +47,9 @@ def display_stats(level_data: dict) -> None:
 ╰─────────────────────────────────────────╯
 """
     )
+
+
+# Game menus
 
 
 def display_main_menu() -> None:
@@ -105,7 +112,11 @@ def display_help() -> None:
     input(f"\n→ Press {ENTER} to continue.")
 
 
+# Level Selector
+
+
 def display_levels(levels: dict) -> None:
+    """Displays all the levels and their information in a dynamic table."""
     headers = ["ID", "NAME", "SIZE", "DIFFICULTY"]
 
     rows = []
@@ -152,6 +163,7 @@ def display_levels(levels: dict) -> None:
     print(header_row)
     print(separator)
 
+    # Display the relevant info
     for row in rows:
         print(
             VR
@@ -159,3 +171,30 @@ def display_levels(levels: dict) -> None:
             + VR
         )
         print(bottom_border if row == rows[-1] else separator)
+
+
+# Title screen
+
+
+def display_title() -> None:
+    """Loads the title screen."""
+    clear_screen()
+
+    title = [
+        "  ______              _____       _ _ ",
+        " |  ____|            |  __ \     | | |",
+        " | |__   __ _  __ _  | |__) |___ | | |",
+        " |  __| / _` |/ _` | |  _  // _ \| | |",
+        " | |___| (_| | (_| | | | \ \ (_) | | |",
+        " |______\__, |\__, | |_|  \_\___/|_|_|",
+        "         __/ | __/ |                  ",
+        "        |___/ |___/                   ",
+        "\n",
+        " MP1: By Nathan Ramos & Ambernie Salting",
+    ]
+
+    for row in title:
+        print(f"{YELLOW}{BOLD}{row}{RESET}")
+        sleep(0.25)
+
+    sleep(1)

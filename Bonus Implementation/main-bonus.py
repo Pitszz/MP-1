@@ -1,10 +1,17 @@
-from src.core_states import main_menu, play_game, display_help, leaderboards, exit_game
+from src.core_states import (
+    initialize_game,
+    main_menu,
+    play_game,
+    display_help,
+    leaderboards,
+    exit_game,
+)
 
 
 def main() -> None:
     """Main game loop."""
 
-    # initialize_game()
+    initialize_game()
 
     current_state = "main_menu"
 

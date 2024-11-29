@@ -62,7 +62,7 @@ def get_level_data(file_name: str, folder_name: str = "levels") -> dict:
             data["initial_state"] = data["puzzle"]
             data["previous_states"] = [data["puzzle"]]
 
-            data["egg_count"] = count_something(data["puzzle"], "")
+            data["egg_count"] = get_count(data["initial_state"], "🥚")
             data["cols"] = len(data["puzzle"][0])
             data["size"] = f"{data["rows"]}x{data["cols"]}"
 
@@ -88,8 +88,8 @@ def get_level_data(file_name: str, folder_name: str = "levels") -> dict:
     return data
 
 
-def count_something(grid: list[list[str]], item: str) -> int:
-    """Returns the total number of eggs."""
+def get_count(grid: list[list[str]], item: str) -> int:
+    """Returns the total count of an item in a grid."""
     count = 0
 
     for row in grid:
