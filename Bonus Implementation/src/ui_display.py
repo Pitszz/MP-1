@@ -1,7 +1,7 @@
 from src.ui_helper import convert_to_arrows, clear_screen, color, truncate, ENTER
 from src.ui_colors import *
+from src.config import MAX_STR, TITLE_DELAY, DELAY
 from time import sleep
-from random import randint
 
 
 # Game displays
@@ -108,32 +108,22 @@ def display_help() -> None:
 ║        © Nathan Ramos & Ambernie Salting       ║
 ╚════════════════════════════════════════════════╝{RESET}"""
     )
-    sleep(1)
+    sleep(DELAY)
     input(f"\n→ Press {ENTER} to continue.")
 
 
 # Level Selector
 
 
-def display_levels(levels: dict) -> None:
-    """Displays all the levels and their information in a dynamic table."""
-    headers = ["ID", "NAME", "SIZE", "DIFFICULTY"]
+def display_table(headers: list[str], rows: list[str], section_title: str = "Table"):
+    """Displays a dynamic table with given headers, rows, and a section title."""
+    clear_screen()
 
-    rows = []
-    for level_id, level in levels.items():
-        rows.append(
-            [
-                f"{level_id:02}",
-                truncate(level["name"], 20),
-                level["size"],
-                truncate(level["difficulty"], 20),
-            ]
-        )
-
+    # Adjust col widths dynamically based on the longest str in each col
     all_rows = [headers] + rows
     col_width = [max(len(row[col]) for row in all_rows) for col in range(len(headers))]
 
-    # Border style
+    # Border styles
     TL, TR = "╭", "╮"
     BL, BR = "╰", "╯"
     HR, VR = "─", "│"
@@ -144,6 +134,7 @@ def display_levels(levels: dict) -> None:
     bottom_border = BL + MB.join(HR * (width + 2) for width in col_width) + BR
     separator = ML + MC.join(HR * (width + 2) for width in col_width) + MR
 
+    # Header row
     header_row = (
         VR
         + VR.join(
@@ -153,17 +144,16 @@ def display_levels(levels: dict) -> None:
         + VR
     )
 
-    # Display levels
-    section_header = f"--- SELECT LEVEL ---".center(
-        sum(col_width) + 2 * len(headers) + 4
-    )
-
+    # Print the title
+    section_header = section_title.center(sum(col_width) + 2 * len(headers) + 4)
     print(f"{YELLOW + BOLD}{section_header}{RESET}")
+
+    # Print the table
     print(top_border)
     print(header_row)
     print(separator)
 
-    # Display the relevant info
+    # Display rows
     for row in rows:
         print(
             VR
@@ -171,6 +161,50 @@ def display_levels(levels: dict) -> None:
             + VR
         )
         print(bottom_border if row == rows[-1] else separator)
+
+
+def display_levels(levels: dict):
+    headers = ["ID", "LEVEL NAME", "SIZE", "NOTE"]
+
+    rows = [
+        [
+            f"{level_id:02}",
+            truncate(level["name"], MAX_STR),
+            level["size"],
+            truncate(level["difficulty"], MAX_STR),
+        ]
+        for level_id, level in levels.items()
+    ]
+
+    display_table(headers, rows, "--- SELECT LEVEL ---")
+
+
+def display_scoreboard(scoreboard: dict):
+    headers = ["RANK", "NAME", "POINTS", "MOVES", "COMMENT"]
+    sorted_scores = sorted(
+        scoreboard["scores"], key=lambda x: (-x["points"], x["moves"], x["name"])
+    )
+
+    rows = [
+        [
+            f"{rank:02}",
+            truncate(entry["name"], 25),
+            str(entry["points"]),
+            str(entry["moves"]),
+            truncate(str(entry["comment"]), 100),
+        ]
+        for rank, entry in enumerate(sorted_scores, 1)
+    ]
+
+    display_table(headers, rows, f'--- Leaderboard: {scoreboard["level"]} ---')
+    input(f"\n→ Press {ENTER} to go back to main menu.")
+
+
+def display_leaderboards(rows: list[str]) -> None:
+    headers = ["LEVEL", "NAME", "POINTS", "MOVES", "COMMENT"]
+
+    display_table(headers, rows, f"--- Overall Leaderboards ---")
+    input(f"\n→ Press {ENTER} to go back to main menu.")
 
 
 # Title screen
@@ -189,12 +223,12 @@ def display_title() -> None:
         r" |______\__, |\__, | |_|  \_\___/|_|_|",
         r"         __/ | __/ |                  ",
         r"        |___/ |___/                   ",
-        "\n",
+        "",
         " MP1: By Nathan Ramos & Ambernie Salting",
     ]
 
     for row in title:
         print(f"{YELLOW}{BOLD}{row}{RESET}")
-        sleep(0.25)
+        sleep(TITLE_DELAY)
 
     sleep(1)

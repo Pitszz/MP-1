@@ -2,23 +2,36 @@ import sys
 
 from src.core_logic import process_move, is_end_state
 from src.input_handler import get_input, get_moves_to_process, get_moves
-from src.level_manager import select_level, undo_move, restart_game, get_count
+from src.level_manager import (
+    select_level,
+    undo_move,
+    restart_game,
+    get_count,
+    get_all_levels,
+    get_level_name,
+)
+from src.leaderboards import (
+    initialize_leaderboards,
+    access_scoreboard,
+    add_to_scoreboard,
+)
 from src.ui_display import (
     display_title,
     update_display,
     display_main_menu,
     display_help,
+    display_scoreboard,
+    display_leaderboards,
 )
-from src.ui_helper import clear_screen, INVALID, YES_NO, ENTER
+from src.ui_helper import clear_screen, truncate, INVALID, YES_NO, ENTER
 from src.ui_colors import *
+from src.config import *
 from time import sleep
-
-EGG = "🥚"
-FULL_NEST = "🪺"
 
 
 def initialize_game() -> None:
     """Displays the title screen and help section."""
+    initialize_leaderboards()
     display_title()
     display_help()
 
@@ -35,7 +48,7 @@ def main_menu() -> str:
             return player_input
         else:
             print(INVALID)
-            sleep(0.5)
+            sleep(DELAY)
 
 
 def play_game() -> None:
@@ -92,7 +105,7 @@ def play_game() -> None:
         # Prompts the user again if there is no valid input
         elif not player_input:
             print(INVALID)
-            sleep(0.5)
+            sleep(DELAY)
 
     game_over(level_data)
 
@@ -102,7 +115,7 @@ def _process_command(command: str, level_data: dict) -> None:
     if command == "help":
         display_help()
     elif command in ("leaderboards", "board"):
-        leaderboards()
+        scoreboard(level_data["name"])
     elif command in ("quit", "exit"):
         exit_game()
     elif command == "solution":
@@ -118,7 +131,49 @@ def _process_command(command: str, level_data: dict) -> None:
 
 
 def leaderboards() -> None:
-    pass
+    rows = []
+
+    for level in get_all_levels("levels"):
+        level_name = get_level_name(level)
+        board = access_scoreboard(level_name)
+
+        # Get the first rank for the level
+        if board["scores"]:
+            topper = sorted(
+                board["scores"], key=lambda x: (-x["points"], x["moves"], x["name"])
+            )[0]
+        # Load a blank row if no scores available yet
+        else:
+            topper = {
+                "name": "",
+                "points": "",
+                "moves": "",
+                "comment": "",
+            }
+
+        rows.append(
+            [
+                level_name,
+                truncate(topper["name"], 25),
+                str(topper["points"]),
+                str(topper["moves"]),
+                truncate(topper["comment"], 100),
+            ]
+        )
+
+    display_leaderboards(rows)
+
+
+def scoreboard(name: str = None) -> None:
+    board = access_scoreboard(name)
+
+    # If no leaderboard yet, don't print the table
+    if not board["scores"]:
+        print(f"\n{RED + BOLD}< No scores available yet >{RESET}")
+        sleep(DELAY)
+        return
+
+    display_scoreboard(board)
 
 
 def exit_game() -> None:
@@ -135,7 +190,7 @@ def exit_game() -> None:
             return
         elif player_input is None:
             print(INVALID)
-            sleep(0.5)
+            sleep(DELAY)
 
 
 def game_over(level_data: dict) -> None:
@@ -145,12 +200,12 @@ def game_over(level_data: dict) -> None:
     # Score summary
     points = sum(level_data["points"])
     message = (
-        f"Congratulations! You got a total of {BOLD + GREEN}{points}{RESET} points!"
+        f"Congratulations! You got a total of {BOLD + GREEN}{points}{RESET} points"
     )
-    if points < 0:
-        message = f"Just keep on trying! You can turn that {BOLD + RED}{points}{RESET} points to positive!"
 
-    print(f"\n{message}")
+    print(
+        f"\n{message} in {BLUE + BOLD}{len(level_data["previous_moves"])}{RESET} moves!"
+    )
 
     # Egg summary
     total_eggs = level_data["egg_count"]
@@ -159,6 +214,31 @@ def game_over(level_data: dict) -> None:
     print(
         f"\nYou guided {BOLD + YELLOW}{nested_eggs}{RESET} egg(s) out of {BOLD + YELLOW}{total_eggs}{RESET}"
     )
-    sleep(0.5)
 
-    input(f"\n→ Press {ENTER} to go back to main menu.")
+    sleep(DELAY)
+    while True:
+        prompt = f"\nWould you like to add yourself to the leaderboard? ({YES_NO}): "
+        player_input = get_input(input(prompt), ("yes", "no", "n", "y"))
+
+        if player_input in ("yes", "y"):
+            level_name = level_data["name"]
+            name = input(f"\nEnter your {BOLD + BLUE}name{RESET}: ").strip()
+            points = sum(level_data["points"])
+            moves = len(level_data["previous_moves"])
+            comment = input(f"Add a {BOLD + BLUE}comment{RESET}: ").strip()
+            player_info = (name, points, moves, comment)
+
+            # Update the scoreboard with the info provided
+            add_to_scoreboard(level_name, *player_info)
+            scoreboard = access_scoreboard(level_name)
+
+            # Display the updated scoreboard
+            display_scoreboard(scoreboard)
+            break
+        elif player_input in ("no", "n"):
+            break
+        elif player_input is None:
+            print(INVALID)
+            sleep(DELAY)
+            game_over(level_data)
+            break

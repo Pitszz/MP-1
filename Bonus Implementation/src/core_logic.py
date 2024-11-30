@@ -1,16 +1,8 @@
 from src.ui_display import update_display
 from src.ui_helper import clear_screen, convert_to_arrows
 from src.ui_colors import *
+from src.config import *
 from time import sleep
-
-
-EGG = "🥚"
-WALL = "🧱"
-GRASS = "🟩"
-NEST = "🪹"
-FULL_NEST = "🪺"
-PAN = "🍳"
-VOID = " "
 
 
 def process_move(move: str, level_data: dict) -> None:
@@ -36,7 +28,7 @@ def process_move(move: str, level_data: dict) -> None:
         print(
             f"\nCurrently moving: {BOLD + GREEN}{convert_to_arrows(current_move)}{RESET}"
         )
-        sleep(0.35)
+        sleep(MOVE_DELAY)
 
     # Only add the score once the move has finished
     level_data["points"].append(score_per_move)
@@ -78,12 +70,12 @@ def move_eggs(
                     elif neighbor == NEST:
                         new_grid[i][j] = GRASS
                         new_grid[ni][nj] = FULL_NEST
-                        temp_score += 5 + moves_left
+                        temp_score += ADD_SCORE + moves_left
 
                     # EGG -> PAN
                     elif neighbor in (PAN, VOID):
                         new_grid[i][j] = GRASS
-                        temp_score -= 5
+                        temp_score += NEG_SCORE
 
     return new_grid, temp_score
 

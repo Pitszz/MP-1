@@ -4,6 +4,7 @@ from src.input_handler import get_input, get_moves, get_moves_to_process, is_val
 
 
 def test_get_moves() -> None:
+    # Takes in an INPUT (str) from the user -> returns a LIST of all the valid moves (or None) or a STR if it's a command
     commands = (
         "main",
         "help",
@@ -26,6 +27,7 @@ def test_get_moves() -> None:
 
     # Commands
     assert get_moves("main", commands) == "main"
+    assert get_moves(" solution ", commands) == "solution"  # Backdoor
     assert get_moves("/help", commands) == "help"
     assert get_moves(" /CHICKEN", commands) == None
     assert get_moves(" /          main", commands) == "main"
@@ -64,15 +66,17 @@ def test_get_moves() -> None:
 
 
 def test_get_input() -> None:
+    # Takes in an INPUT (str) -> returns a STR if it's a valid command, NONE otherwise
     commands = ("play", "help", "quit", "exit", "leaderboards", "board")
 
     assert get_input("help", commands) == "help"
     assert get_input("qUiT   ", commands) == "quit"
     assert get_input("  EXIT  ", commands) == "exit"
+    assert get_input(" NONE ", commands) == "none"
 
 
 def test_get_moves_to_process() -> None:
-    # This takes in pre-processed input (valid list) and yields the actual moves to be processed given remaining moves
+    # This takes in a VALID LIST of STR (PRE-PROCESSED INPUT) of moves and yields the actual moves to be processed given remaining moves
     assert [*get_moves_to_process(["l", "r", "l", "l"], 3)] == ["l", "r", "l"]
     assert [*get_moves_to_process(["f", "r", "b", "l"] * 10, 3)] == ["f", "r", "b"]
     assert [*get_moves_to_process(["l", "r"], 10)] == ["l", "r"]
@@ -81,6 +85,7 @@ def test_get_moves_to_process() -> None:
 
 
 def test_is_valid_input() -> None:
+    # Takes an INPUT (str) -> returns a BOOL whether it is in the list of valid commands
     commands = ("play", "help", "quit", "exit", "leaderboards", "board")
 
     assert is_valid_input("play", commands) == True

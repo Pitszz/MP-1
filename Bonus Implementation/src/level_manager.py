@@ -2,8 +2,9 @@ import os
 
 from src.input_handler import get_input
 from src.ui_display import display_levels
-from src.ui_helper import clear_screen, fake_load, INVALID
+from src.ui_helper import clear_screen, fake_load, INVALID_LEVEL
 from src.ui_colors import *
+from src.config import EGG, MAX_UNDO, DELAY
 from time import sleep
 
 
@@ -21,8 +22,8 @@ def select_level(folder_name: str = "levels") -> dict:
 
         # Prompts again if chosen ID is invalid
         if level_id is None:
-            print(INVALID)
-            sleep(0.5)
+            print(INVALID_LEVEL)
+            sleep(DELAY)
             continue
 
         chosen_level = levels_info[int(level_id)]
@@ -56,13 +57,15 @@ def get_level_data(file_name: str, folder_name: str = "levels") -> dict:
             data["max_moves"] = int(file.readline())
             data["moves_left"] = data["max_moves"]
 
-            data["puzzle"] = [
+            # Grid & state
+            data["initial_state"] = [
                 list(file.readline().strip("\n")) for _ in range(data["rows"])
             ]
-            data["initial_state"] = data["puzzle"]
+            data["puzzle"] = data["initial_state"]
             data["previous_states"] = [data["puzzle"]]
 
-            data["egg_count"] = get_count(data["initial_state"], "🥚")
+            # Other info
+            data["egg_count"] = get_count(data["initial_state"], EGG)
             data["cols"] = len(data["puzzle"][0])
             data["size"] = f"{data["rows"]}x{data["cols"]}"
 
@@ -73,15 +76,13 @@ def get_level_data(file_name: str, folder_name: str = "levels") -> dict:
     except FileNotFoundError as error:
         print(f'File: "{file_name}" not found.')
 
-    # MOVE SET
+    # Move & Score Info
     data["current_move"] = ""
     data["previous_moves"] = []
-    data["undos_left"] = 3
-
-    # SCORE SET
+    data["undos_left"] = MAX_UNDO
     data["points"] = [0]
 
-    # # For Debug
+    # For Debug
     # for (key, value) in data.items():
     #     print(key, value)
 
@@ -105,7 +106,8 @@ def get_count(grid: list[list[str]], item: str) -> int:
 
 def get_level_name(file_name: str) -> str:
     """Returns the name of the file."""
-    return file_name.split(".")[0].upper()
+    dot_idx = file_name[::-1].index(".")
+    return file_name[: -(dot_idx + 1)].title()
 
 
 def undo_move(level_data: dict) -> dict:
@@ -113,22 +115,23 @@ def undo_move(level_data: dict) -> dict:
     previous_moves = level_data["previous_moves"]
     undos_left = level_data["undos_left"]
 
+    # We can only undo if we have made any moves and if we still have undos left
     if previous_moves and undos_left > 0:
         level_data["undos_left"] -= 1
         level_data["moves_left"] += 1
 
-        if len(level_data["previous_moves"]) == len(level_data["points"]) - 1:
-            level_data["points"].pop()
-
+        level_data["points"].pop()
         level_data["previous_states"].pop()
         level_data["previous_moves"].pop()
+
+        # Updates the puzzle to the previous state
         level_data["puzzle"] = level_data["previous_states"][-1]
     elif undos_left <= 0:
         print(f"\n{RED + BOLD}< No more undos left >{RESET}")
-        sleep(0.5)
+        sleep(DELAY)
     elif not previous_moves:
         print(f"\n{RED + BOLD}< Nothing to undo >{RESET}")
-        sleep(0.5)
+        sleep(DELAY)
 
 
 def restart_game(level_data: dict) -> dict:
@@ -136,10 +139,11 @@ def restart_game(level_data: dict) -> dict:
     # Will only restart if we're not back in our initial state
     if not can_restart(level_data):
         print(f"\n{RED + BOLD}< Nothing to reset >{RESET}")
-        sleep(0.5)
+        sleep(DELAY)
         return
 
-    level_data["undos_left"] = 3
+
+    level_data["undos_left"] = MAX_UNDO
     level_data["moves_left"] = level_data["max_moves"]
     level_data["points"] = [0]
     level_data["previous_moves"].clear()
@@ -149,9 +153,9 @@ def restart_game(level_data: dict) -> dict:
 
 def can_restart(level_data: dict) -> bool:
     """Returns true if all the current values is not equal to their initial value"""
-    return not (
-        not level_data["previous_moves"]
-        and level_data["moves_left"] == level_data["max_moves"]
-        and level_data["puzzle"] == level_data["initial_state"]
-        and level_data["undos_left"] == 3
+    return (
+        level_data["previous_moves"]
+        or level_data["moves_left"] != level_data["max_moves"]
+        or level_data["puzzle"] != level_data["initial_state"]
+        or level_data["undos_left"] != MAX_UNDO
     )

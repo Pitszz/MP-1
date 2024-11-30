@@ -1,0 +1,17 @@
+{
+    "level": "Bottleneck",
+    "scores": [
+        {
+            "name": "Ambernie",
+            "points": 62,
+            "moves": 10,
+            "comment": "Such good level"
+        },
+        {
+            "name": "Yash",
+            "points": 62,
+            "moves": 10,
+            "comment": ""
+        }
+    ]
+}

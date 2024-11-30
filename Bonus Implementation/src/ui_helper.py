@@ -3,10 +3,12 @@ import sys
 import subprocess
 
 from src.ui_colors import *
+from src.config import MOVE_DELAY
 from time import sleep
 
 
 INVALID = f"\n{RED + BOLD}< Invalid Input >{RESET}"
+INVALID_LEVEL = f"\n{RED + BOLD}< Invalid Level ID >{RESET}"
 YES_NO = f"{GREEN + BOLD}Y{RESET}/{RED + BOLD}N{RESET}"
 ENTER = f"{BOLD}[Enter]{RESET}"
 
@@ -48,9 +50,7 @@ def truncate(text: str, max_length: int) -> str:
 
 def fake_load(text: str, k: int) -> None:
     """Fake loading animation."""
-    for i in range(1, k + 3):
+    for i in range(k + 2):
         clear_screen()
-        print(f"{text}" + "." * (i % 4))
-        sleep(0.3)
-
-    sleep(0.2)
+        print(f"{text}" + "." * i)
+        sleep(MOVE_DELAY)
