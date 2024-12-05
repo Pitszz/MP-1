@@ -164,7 +164,7 @@ def display_table(headers: list[str], rows: list[str], section_title: str = "Tab
 
 
 def display_levels(levels: dict):
-    headers = ["ID", "LEVEL NAME", "SIZE", "NOTE"]
+    headers = ["ID", "LEVEL NAME", "SIZE", "NOTES"]
 
     rows = [
         [
@@ -197,13 +197,19 @@ def display_scoreboard(scoreboard: dict):
     ]
 
     display_table(headers, rows, f'--- Leaderboard: {scoreboard["level"]} ---')
-    input(f"\n→ Press {ENTER} to go back to main menu.")
+    sleep(DELAY)
+    input(f"\n→ Press {ENTER} to continue.")
 
 
 def display_leaderboards(rows: list[str]) -> None:
     headers = ["LEVEL", "NAME", "POINTS", "MOVES", "COMMENT"]
 
     display_table(headers, rows, f"--- Overall Leaderboards ---")
+
+    print(
+        f"\n{YELLOW}NOTE: This only displays the {BOLD}Rank 1 Player per level{RESET}."
+    )
+    sleep(DELAY)
     input(f"\n→ Press {ENTER} to go back to main menu.")
 
 

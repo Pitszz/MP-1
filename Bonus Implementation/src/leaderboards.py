@@ -2,14 +2,14 @@ import os
 import json
 
 from src.level_manager import get_all_levels, get_level_name
-from src.config import BOARD_DIR
+from src.config import BOARD_DIR, LEVEL_DIR
 
 
 def initialize_leaderboards() -> None:
     """Creates a directory and all the scoreboard files."""
     _create_directory(BOARD_DIR)
 
-    for level in get_all_levels("levels"):
+    for level in get_all_levels(LEVEL_DIR):
         _create_file(BOARD_DIR, level)
 
 

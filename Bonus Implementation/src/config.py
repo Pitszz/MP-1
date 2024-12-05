@@ -8,7 +8,7 @@ PAN = "🍳"
 VOID = " "
 
 # Score
-ADD_SCORE = 5
+ADD_SCORE = 10
 NEG_SCORE = -5
 
 # Gameplay
@@ -17,8 +17,9 @@ MAX_STR = 50
 
 # Pause Screen
 DELAY = 0.5
-MOVE_DELAY = 0.35
+MOVE_DELAY = 0.25
 TITLE_DELAY = 0.25
 
 # Leaderboards
 BOARD_DIR = "leaderboards"
+LEVEL_DIR = "levels"

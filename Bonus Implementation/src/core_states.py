@@ -53,7 +53,7 @@ def main_menu() -> str:
 
 def play_game() -> None:
     """Handles the playing state."""
-    level_data = select_level("levels")
+    level_data = select_level(LEVEL_DIR)
 
     commands = (
         "help",
@@ -97,10 +97,10 @@ def play_game() -> None:
 
             # Process each move
             for move in moves:
-                level_data["moves_left"] -= 1
                 level_data["current_move"] = move
-                level_data["previous_moves"].append(move)
                 process_move(move, level_data)
+                level_data["previous_moves"].append(move)
+                level_data["moves_left"] -= 1
 
         # Prompts the user again if there is no valid input
         elif not player_input:
@@ -131,9 +131,10 @@ def _process_command(command: str, level_data: dict) -> None:
 
 
 def leaderboards() -> None:
+    """Displays the overall leaderboard."""
     rows = []
 
-    for level in get_all_levels("levels"):
+    for level in get_all_levels(LEVEL_DIR):
         level_name = get_level_name(level)
         board = access_scoreboard(level_name)
 
@@ -165,6 +166,7 @@ def leaderboards() -> None:
 
 
 def scoreboard(name: str = None) -> None:
+    """Displays the current scoreboard for a level."""
     board = access_scoreboard(name)
 
     # If no leaderboard yet, don't print the table
@@ -216,6 +218,8 @@ def game_over(level_data: dict) -> None:
     )
 
     sleep(DELAY)
+
+    # Add to leaderboard prompt
     while True:
         prompt = f"\nWould you like to add yourself to the leaderboard? ({YES_NO}): "
         player_input = get_input(input(prompt), ("yes", "no", "n", "y"))

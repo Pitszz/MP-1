@@ -4,11 +4,11 @@ from src.input_handler import get_input
 from src.ui_display import display_levels
 from src.ui_helper import clear_screen, fake_load, INVALID_LEVEL
 from src.ui_colors import *
-from src.config import EGG, MAX_UNDO, DELAY
+from src.config import EGG, MAX_UNDO, DELAY, LEVEL_DIR
 from time import sleep
 
 
-def select_level(folder_name: str = "levels") -> dict:
+def select_level(folder_name: str = LEVEL_DIR) -> dict:
     """Handles the level selection."""
     levels = get_all_levels(folder_name)
     levels_info = {idx: get_level_data(level) for (idx, level) in enumerate(levels, 1)}
@@ -44,7 +44,7 @@ def get_all_levels(folder_name: str) -> list[str]:
     return levels
 
 
-def get_level_data(file_name: str, folder_name: str = "levels") -> dict:
+def get_level_data(file_name: str, folder_name: str = LEVEL_DIR) -> dict:
     """Given a file_name, it extracts the data from it and returns it as a dictionary."""
     data = {}
 
@@ -141,7 +141,6 @@ def restart_game(level_data: dict) -> dict:
         print(f"\n{RED + BOLD}< Nothing to reset >{RESET}")
         sleep(DELAY)
         return
-
 
     level_data["undos_left"] = MAX_UNDO
     level_data["moves_left"] = level_data["max_moves"]

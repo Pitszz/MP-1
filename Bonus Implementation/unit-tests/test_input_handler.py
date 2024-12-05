@@ -15,6 +15,7 @@ def test_get_moves() -> None:
         "undo",
         "reset",
         "restart",
+        "solution"
     )
 
     # Normal input
@@ -27,6 +28,7 @@ def test_get_moves() -> None:
 
     # Commands
     assert get_moves("main", commands) == "main"
+    assert get_moves(" m a i n ", commands) == []
     assert get_moves(" solution ", commands) == "solution"  # Backdoor
     assert get_moves("/help", commands) == "help"
     assert get_moves(" /CHICKEN", commands) == None
@@ -36,7 +38,8 @@ def test_get_moves() -> None:
     # Starts with '/'
     assert get_moves("//////", commands) == None
     assert get_moves("/LR", commands) == None
-    assert get_moves("/Egg Roll") == None
+    assert get_moves("/Egg Roll", commands) == None
+    assert get_moves("/ s olution", commands) == None
 
     # Random words
     assert get_moves("          THIS IS HOW YOU DO IT          ", commands) == []
@@ -49,13 +52,7 @@ def test_get_moves() -> None:
     assert get_moves("thoughtcrime", commands) == ["r"]
     assert get_moves("karasu no uta ni akane", commands) == ["r"]
     assert get_moves("ich bin ein berliner", commands) == ["b", "b", "r", "l", "r"]
-    assert get_moves("Embodiment of Scarlet Devil", commands) == [
-        "b",
-        "f",
-        "r",
-        "l",
-        "l",
-    ]
+    assert get_moves("Embodiment of Scarlet Devil", commands) == ["b", "f", "r", "l", "l"]
     assert get_moves("it is what it is", commands) == []
     assert get_moves(
         "Hey guys, did you know that in terms of male human and female Pokemon breeding...",
@@ -67,12 +64,13 @@ def test_get_moves() -> None:
 
 def test_get_input() -> None:
     # Takes in an INPUT (str) -> returns a STR if it's a valid command, NONE otherwise
+    # Used for all other prompts besides the gameplay state
     commands = ("play", "help", "quit", "exit", "leaderboards", "board")
 
     assert get_input("help", commands) == "help"
     assert get_input("qUiT   ", commands) == "quit"
     assert get_input("  EXIT  ", commands) == "exit"
-    assert get_input(" NONE ", commands) == "none"
+    assert get_input(" NONE ", commands) == None
 
 
 def test_get_moves_to_process() -> None:
@@ -82,6 +80,8 @@ def test_get_moves_to_process() -> None:
     assert [*get_moves_to_process(["l", "r"], 10)] == ["l", "r"]
     assert [*get_moves_to_process(["l", "r", "f", "b"], 0)] == []
     assert [*get_moves_to_process(["l", "r", "f", "b"], 20)] == ["l", "r", "f", "b"]
+    assert [*get_moves_to_process(["l", "r", "f", "b"] * 5, 10)] == ["l", "r", "f", "b"] * 2 + ["l", "r"]
+    assert [*get_moves_to_process(["b", "b", "b", "b"], 1)] == ["b"]
 
 
 def test_is_valid_input() -> None:

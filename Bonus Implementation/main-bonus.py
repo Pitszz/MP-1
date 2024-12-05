@@ -11,7 +11,7 @@ from src.core_states import (
 def main() -> None:
     """Main game loop."""
 
-    initialize_game()
+    # initialize_game()
 
     current_state = "main_menu"
 

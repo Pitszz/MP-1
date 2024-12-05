@@ -104,7 +104,7 @@ def move_eggs(
                     elif neighbor == NEST:
                         new_grid[i][j] = GRASS
                         new_grid[ni][nj] = FULL_NEST
-                        level_data["points"].append(5 + level_data["moves_left"])
+                        level_data["points"].append(10 + level_data["moves_left"] + 1)
                     elif neighbor in (PAN, VOID):
                         new_grid[i][j] = GRASS
                         level_data["points"].append(-5)
