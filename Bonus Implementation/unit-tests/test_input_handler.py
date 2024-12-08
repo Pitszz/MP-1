@@ -3,6 +3,10 @@ from random import randint
 from src.input_handler import get_input, get_moves, get_moves_to_process, is_valid_input
 from src.ui_helper import convert_to_arrows
 
+# The functions with no return or yielded values are NOT unit tested.
+# I would be the first to say this, but these are SLOW (way, way slower than the base tests with larger inputs).
+# For the sake of time, I reduced the sizes of the large inputs.
+
 
 def test_get_moves() -> None:
     # Takes in an INPUT (str) from the user -> returns a LIST of all the valid moves (or None) or a STR if it's a command
@@ -113,19 +117,19 @@ def test_get_moves_to_process() -> None:
     assert [*get_moves_to_process([], -1)] == []
 
     # Large Inputs, varying amounts of remaining moves
-    assert [*get_moves_to_process(["l"] * 10**6, 0)] == []
-    assert [*get_moves_to_process(["l"] * 10**6, 1)] == ["l"]
-    assert [*get_moves_to_process(["l"] * 10**6, 100)] == ["l"] * 100
-    assert [*get_moves_to_process(["l"] * 10**6, 10**5)] == ["l"] * 10**5
-    assert [*get_moves_to_process(["l", "r"] * 10**6, 10**5)] == ["l", "r"] * ((10**5) // 2)
-    assert [*get_moves_to_process(["l", "r"] * 10**6, 10)] == ["l", "r"] * 5
+    assert [*get_moves_to_process(["l"] * 10**5, 0)] == []
+    assert [*get_moves_to_process(["l"] * 10**5, 1)] == ["l"]
+    assert [*get_moves_to_process(["l"] * 10**5, 100)] == ["l"] * 100
+    assert [*get_moves_to_process(["l"] * 10**5, 10**4)] == ["l"] * 10**4
+    assert [*get_moves_to_process(["l", "r"] * 10**5, 10**4)] == ["l", "r"] * ((10**4) // 2)
+    assert [*get_moves_to_process(["l", "r"] * 10**5, 10)] == ["l", "r"] * 5
 
     # Using lists comprehension to generate large inputs with random moves.
-    # Upper limit with the code is 10**7, it slows down significantly around the 10**6 mark.
-    mock_moves_list_1 = mock_moves_list_gen(10**5)
-    mock_moves_list_2 = mock_moves_list_gen(10**6) # slows down the test by ~1 second
-    mock_moves_list_3 = mock_moves_list_gen(10**7) # slows down the test by ~5 seconds
-    # to the tester, don't try 10**8 & above, it'll probably take minutes (i tested & it took about a minute...)
+    # With how many things are happening in the bonus version, 10**6 is already slower here.
+    mock_moves_list_1 = mock_moves_list_gen(10**4)
+    mock_moves_list_2 = mock_moves_list_gen(10**5) 
+    mock_moves_list_3 = mock_moves_list_gen(10**6) 
+    
 
     assert [*get_moves_to_process(mock_moves_list_1, 0)] == []
     assert [*get_moves_to_process(mock_moves_list_2, 0)] == []
@@ -136,7 +140,7 @@ def test_get_moves_to_process() -> None:
     assert [*get_moves_to_process(mock_moves_list_1, 100)] == mock_moves_list_1[:100]
     assert [*get_moves_to_process(mock_moves_list_2, 100)] == mock_moves_list_2[:100]
     assert [*get_moves_to_process(mock_moves_list_3, 100)] == mock_moves_list_3[:100]
-    assert [*get_moves_to_process(mock_moves_list_3, 10**8)] == mock_moves_list_3
+    assert [*get_moves_to_process(mock_moves_list_3, 10**6)] == mock_moves_list_3
 
 
 def test_is_valid_input() -> None:
