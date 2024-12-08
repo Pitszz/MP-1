@@ -3,11 +3,11 @@ import pytest
 from src.level_manager import get_level_data, can_restart
 
 
-def test_get_level_data() -> None:
+def test_get_level_data(capsys) -> None:
     # Takes in a FILENAME (str) must be on the levels folder -> returns a DICT containing all the relevant info
 
     # TEST CASE 1
-    file_name = "Base Level.in"
+    file_name = "01 Base Level.in"
     level_data = get_level_data(file_name)
 
     assert level_data["initial_state"] == [
@@ -20,7 +20,7 @@ def test_get_level_data() -> None:
     assert level_data["rows"], level_data["cols"] == (4, 8)
 
     # TEST CASE 2
-    file_name_2 = "Chunked Together.in"
+    file_name_2 = "09 Chunked Together.in"
     level_data_2 = get_level_data(file_name_2)
 
     assert level_data_2["initial_state"] == [
@@ -38,7 +38,7 @@ def test_get_level_data() -> None:
     assert level_data_2["rows"], level_data_2["cols"] == (9, 9)
 
     # TEST CASE 2
-    file_name_3 = "Wing my Way.in"
+    file_name_3 = "04 Wing my Way.in"
     level_data_3 = get_level_data(file_name_3)
 
     assert level_data_3["initial_state"] == [
@@ -62,4 +62,41 @@ def test_get_level_data() -> None:
     ]
     assert level_data_3["max_moves"] == 15
     assert level_data_3["rows"], level_data_3["cols"] == (19, 19)
+
+    # TEST CASE 4
+    file_name_4 = "Bonus;Void.in"
+    level_data_4 = get_level_data(file_name_4)
+
+    assert level_data_4["initial_state"] == [
+    ["🧱", "🧱", "🧱", "🧱", "🧱", "🧱", "🧱", "🧱", "🧱", "🧱", "🧱", "🧱"],
+    ["🧱", "🍳", "🥚", "🥚", "🥚", "🟩", "🟩", "🟩", "🟩", "🟩", "🟩", "🧱"],
+    ["🧱", "🧱", "🧱", "🟩", "🟩", "🟩", "🟩", "🟩", "🟩", "🧱", "🟩", "🧱"],
+    [" ", "🧱", "🧱", "🧱", " ", " ", " ", " ", "🟩", "🧱", "🟩", " "],
+    ["🧱", "🪹", "🟩", "🟩", "🥚", "🟩", "🟩", "🟩", "🟩", "🟩", "🟩", "🧱"],
+    [" ", "🧱", "🧱", "🟩", " ", " ", " ", " ", "🪹", "🟩", "🟩", " "], 
+    ["🧱", "🧱", "🧱", "🟩", "🟩", "🟩", "🟩", "🟩", "🟩", "🟩", "🟩", "🧱"],
+    ["🧱", "🪹", "🟩", "🟩", "🟩", "🟩", "🟩", "🟩", "🟩", "🟩", "🪹", "🧱"],
+    ["🧱", "🧱", "🧱", "🧱", "🧱", "🧱", "🧱", "🧱", "🧱", "🧱", "🧱", "🧱"],
+    ]
+    assert level_data_4["max_moves"] == 15
+    assert level_data_4["rows"], level_data_3["cols"] == (9, 12)
+
+    # Level not in levels Folder 
+    not_level_1 = get_level_data("levelmissing.in")
+    
+    captured_stdout = capsys.readouterr()
+
+    assert captured_stdout.out == 'File: "levelmissing.in" not found.\n'
+
+    not_level_2 = get_level_data("levelhaha.in") 
+
+    captured_stdout_2 = capsys.readouterr()
+
+    assert captured_stdout_2.out == 'File: "levelhaha.in" not found.\n'
+
+    not_level_3 = get_level_data("leveltest.in") 
+
+    captured_stdout_3 = capsys.readouterr()
+
+    assert captured_stdout_3.out == 'File: "leveltest.in" not found.\n'
 
