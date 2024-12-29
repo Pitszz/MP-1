@@ -32,7 +32,7 @@ class Game:
     """
     def __init__(self) -> None:
         # Initializes the level specifics
-        self.level = LoadLevel()
+        self.level = LoadLevel(sys.argv)
         self.controls = set("lfrb")
         self.display = Display(self.level.level_data)
         self.egg_moves = Egg(self.level.level_data, self.display)
@@ -58,9 +58,9 @@ class Game:
             # Update the display every frame
             self.display.update_display()
 
-            moves_left = self.level_data["moves_left"]
-            previous_moves = self.level_data["previous_moves"]
-            player_input = prompt_player(self.get_input)
+            moves_left: int = self.level_data["moves_left"]
+            previous_moves: list[str] = self.level_data["previous_moves"]
+            player_input: list[str] = prompt_player(self.get_input)
             # pass get_input to player_input since latter
             # is an inner function unable to access the former
 
@@ -199,7 +199,7 @@ class Display:
         }
 
         # Replaces the string with '...←↑↓' in case it's too long
-        converted = "".join(
+        converted: str = "".join(
             [conversion[move] for move in previous_moves[-max_length:]]
             )
 
@@ -341,18 +341,20 @@ class Egg:
 
 
 class LoadLevel:
-    def __init__(self) -> None:
+    def __init__(self, filename) -> None:
         """Initializes the level file for the game. This checks if a
         valid filename was given, otherwise the program exits.
         """
 
-        # level_data is a dictionary since dataclass might be overkill
+        # level_data is a dictionary since we want flexibility
+        # though, a dataclass can work also...
         self.level_data: dict = {}
-        if len(sys.argv) < 2:
+        self.filename = filename
+        if len(filename) < 2:
             print("The game requires a filename to start.", file=sys.stderr)
             sys.exit()
         else:
-            self.file_path = os.path.join("levels", sys.argv[1])
+            self.file_path = os.path.join("levels", self.filename[1])
 
         self.load_level()
 
@@ -370,9 +372,8 @@ class LoadLevel:
                 self.level_data["cols"] = len(self.level_data["puzzle"][0])
 
         except FileNotFoundError:
-            print(f"""{sys.argv[1]} does not exist in the specified 'levels'
-             folders.""".replace('\n', '').replace('  ', ''), file=sys.stderr)
-            sys.exit()
+            sys.exit(f"""{self.filename[1]} does not exist in the specified
+             'levels' folders.""".replace('\n', '').replace('  ', ''))
 
         self.level_data["points"] = [0]
         self.level_data["previous_moves"] = []
