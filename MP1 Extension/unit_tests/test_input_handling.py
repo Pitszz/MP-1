@@ -1,22 +1,24 @@
 import pytest
 import sys
 from random import randint
-from shadow import Game, Display
+from game import Game, DisplayManager, Block, Level
 
-# The functions with no return or yielded values are NOT unit tested.
+# The methods with no return or yielded values are NOT unit tested.
 # Inner functions are also not unit tested.
 
 # INPUT HANDLING TESTS
 
 class GameIt(Game):
-    # created a subclass to bypass the initializer
+    # a subclass created to bypass the initializer
     def __init__(self):
         # bypass __init__ (probably not a good idea)
+        # but if it works, it works
         pass
 
-display = Display({})  # empty dict to mock level_data
 
 test = GameIt()
+
+display = DisplayManager(test)
 
 
 def test_get_input() -> None:
@@ -67,36 +69,34 @@ def test_get_input() -> None:
 
 
 def test_get_moves_to_process() -> None:
-    previous_moves = [] # mock list
-
     # This takes in pre-processed input (valid list) and yields the actual moves to be processed given remaining moves
-    assert [*test.get_moves_to_process(["l", "r", "l", "l"], 3, previous_moves)] == ["l", "r", "l"]
-    assert [*test.get_moves_to_process(["f", "r", "b", "l"] * 10, 3, previous_moves)] == ["f", "r", "b"]
-    assert [*test.get_moves_to_process(["l", "r"], 10, previous_moves)] == ["l", "r"]
-    assert [*test.get_moves_to_process(["l", "r", "f", "b"], 0, previous_moves)] == []
-    assert [*test.get_moves_to_process(["l", "r", "f", "b"], 20, previous_moves)] == ["l", "r", "f", "b"]
-    assert [*test.get_moves_to_process(["l", "l", "r", "f", "b"], 5, previous_moves)] == ["l", "l", "r", "f", "b"]
-    assert [*test.get_moves_to_process(["l", "l", "r", "f", "b"], 4, previous_moves)] == ["l", "l", "r", "f"]
-    assert [*test.get_moves_to_process(["l", "r", "f", "b", "l", "f"], 2, previous_moves)] == ["l", "r"]
+    assert [*test.get_moves_to_process(["l", "r", "l", "l"], 3)] == ["l", "r", "l"]
+    assert [*test.get_moves_to_process(["f", "r", "b", "l"] * 10, 3)] == ["f", "r", "b"]
+    assert [*test.get_moves_to_process(["l", "r"], 10)] == ["l", "r"]
+    assert [*test.get_moves_to_process(["l", "r", "f", "b"], 0)] == []
+    assert [*test.get_moves_to_process(["l", "r", "f", "b"], 20)] == ["l", "r", "f", "b"]
+    assert [*test.get_moves_to_process(["l", "l", "r", "f", "b"], 5)] == ["l", "l", "r", "f", "b"]
+    assert [*test.get_moves_to_process(["l", "l", "r", "f", "b"], 4)] == ["l", "l", "r", "f"]
+    assert [*test.get_moves_to_process(["l", "r", "f", "b", "l", "f"], 2)] == ["l", "r"]
 
     #EDGE CASES
 
     # Negative moves left. Unlikely to happen in-game, but it doesn't hurt to try.
-    assert [*test.get_moves_to_process(["l", "r", "l", "l"], -1, previous_moves)] == []
+    assert [*test.get_moves_to_process(["l", "r", "l", "l"], -1)] == []
 
     # No moves to process. Unlikely to happen in-game as well.
-    assert [*test.get_moves_to_process([], 3, previous_moves)] == []
+    assert [*test.get_moves_to_process([], 3)] == []
 
     # No moves to process & negative moves. (If this happens in-game, the player is a wizard...)
-    assert [*test.get_moves_to_process([], -1, previous_moves)] == []
+    assert [*test.get_moves_to_process([], -1)] == []
 
     # Large Inputs, varying amounts of remaining moves
-    assert [*test.get_moves_to_process(["l"] * 10**6, 0, previous_moves)] == []
-    assert [*test.get_moves_to_process(["l"] * 10**6, 1, previous_moves)] == ["l"]
-    assert [*test.get_moves_to_process(["l"] * 10**6, 100, previous_moves)] == ["l"] * 100
-    assert [*test.get_moves_to_process(["l"] * 10**6, 10**5, previous_moves)] == ["l"] * 10**5
-    assert [*test.get_moves_to_process(["l", "r"] * 10**6, 10**5, previous_moves)] == ["l", "r"] * ((10**5) // 2)
-    assert [*test.get_moves_to_process(["l", "r"] * 10**6, 10, previous_moves)] == ["l", "r"] * 5
+    assert [*test.get_moves_to_process(["l"] * 10**6, 0)] == []
+    assert [*test.get_moves_to_process(["l"] * 10**6, 1)] == ["l"]
+    assert [*test.get_moves_to_process(["l"] * 10**6, 100)] == ["l"] * 100
+    assert [*test.get_moves_to_process(["l"] * 10**6, 10**5)] == ["l"] * 10**5
+    assert [*test.get_moves_to_process(["l", "r"] * 10**6, 10**5)] == ["l", "r"] * ((10**5) // 2)
+    assert [*test.get_moves_to_process(["l", "r"] * 10**6, 10)] == ["l", "r"] * 5
 
     # Using lists comprehension to generate large inputs with random moves.
     # Upper limit with the code is 10**7, it slows down significantly around the 10**6 mark.
@@ -105,16 +105,16 @@ def test_get_moves_to_process() -> None:
     mock_moves_list_3 = mock_moves_list_gen(10**7) # slows down the test by ~5 seconds
     # to the tester, don't try 10**8 & above, it'll probably take minutes (i tested & it took about a minute...)
 
-    assert [*test.get_moves_to_process(mock_moves_list_1, 0, previous_moves)] == []
-    assert [*test.get_moves_to_process(mock_moves_list_2, 0, previous_moves)] == []
-    assert [*test.get_moves_to_process(mock_moves_list_3, 0, previous_moves)] == []
-    assert [*test.get_moves_to_process(mock_moves_list_1, 10, previous_moves)] == mock_moves_list_1[:10]
-    assert [*test.get_moves_to_process(mock_moves_list_2, 10, previous_moves)] == mock_moves_list_2[:10]
-    assert [*test.get_moves_to_process(mock_moves_list_3, 10, previous_moves)] == mock_moves_list_3[:10]
-    assert [*test.get_moves_to_process(mock_moves_list_1, 100, previous_moves)] == mock_moves_list_1[:100]
-    assert [*test.get_moves_to_process(mock_moves_list_2, 100, previous_moves)] == mock_moves_list_2[:100]
-    assert [*test.get_moves_to_process(mock_moves_list_3, 100, previous_moves)] == mock_moves_list_3[:100]
-    assert [*test.get_moves_to_process(mock_moves_list_3, 10**8, previous_moves)] == mock_moves_list_3
+    assert [*test.get_moves_to_process(mock_moves_list_1, 0)] == []
+    assert [*test.get_moves_to_process(mock_moves_list_2, 0)] == []
+    assert [*test.get_moves_to_process(mock_moves_list_3, 0)] == []
+    assert [*test.get_moves_to_process(mock_moves_list_1, 10)] == mock_moves_list_1[:10]
+    assert [*test.get_moves_to_process(mock_moves_list_2, 10)] == mock_moves_list_2[:10]
+    assert [*test.get_moves_to_process(mock_moves_list_3, 10)] == mock_moves_list_3[:10]
+    assert [*test.get_moves_to_process(mock_moves_list_1, 100)] == mock_moves_list_1[:100]
+    assert [*test.get_moves_to_process(mock_moves_list_2, 100)] == mock_moves_list_2[:100]
+    assert [*test.get_moves_to_process(mock_moves_list_3, 100)] == mock_moves_list_3[:100]
+    assert [*test.get_moves_to_process(mock_moves_list_3, 10**8)] == mock_moves_list_3
 
 
 def test_is_valid_input() -> None:
@@ -180,7 +180,7 @@ def test_is_valid_input() -> None:
         assert test.is_valid_input({}, controls)
         
 
-def test_convert_to_arrows() -> None:
+def test_convert_moves_to_arrows() -> None:
     # Takes in a list of valid moves, then returns their STR arrow equivalent with a maximum of 20 arrows shown.
     conversion = {
         "l": "←",
@@ -192,19 +192,19 @@ def test_convert_to_arrows() -> None:
     # Conventional Moves
 
     # Single-Character Inputs
-    assert display.convert_to_arrows(["l"]) == "←"
-    assert display.convert_to_arrows(["r"]) == "→"
-    assert display.convert_to_arrows(["f"]) == "↑"
-    assert display.convert_to_arrows(["b"]) == "↓"
+    assert display.convert_moves_to_arrows(["l"]) == "←"
+    assert display.convert_moves_to_arrows(["r"]) == "→"
+    assert display.convert_moves_to_arrows(["f"]) == "↑"
+    assert display.convert_moves_to_arrows(["b"]) == "↓"
     
     # Multiple Character Inputs
-    assert display.convert_to_arrows(["l", "l", "l"]) == "←←←"
-    assert display.convert_to_arrows(["r", "l", "b", "f"]) == "→←↓↑"
-    assert display.convert_to_arrows(["f", "r", "l", "f", "r", "l"]) == "↑→←↑→←"
-    assert display.convert_to_arrows(["b", "l", "r", "r"]) == "↓←→→"
-    assert display.convert_to_arrows(["b", "l", "f", "r", "r", "f"]) == "↓←↑→→↑"
-    assert display.convert_to_arrows(["r", "f", "l", "f", "l", "b", "r"]) == "→↑←↑←↓→"
-    assert display.convert_to_arrows(["r", "f", "l", "f", "l", "b", "r"] * 3) == "...↑←↑←↓→→↑←↑←↓→→↑←↑←↓→"
+    assert display.convert_moves_to_arrows(["l", "l", "l"]) == "←←←"
+    assert display.convert_moves_to_arrows(["r", "l", "b", "f"]) == "→←↓↑"
+    assert display.convert_moves_to_arrows(["f", "r", "l", "f", "r", "l"]) == "↑→←↑→←"
+    assert display.convert_moves_to_arrows(["b", "l", "r", "r"]) == "↓←→→"
+    assert display.convert_moves_to_arrows(["b", "l", "f", "r", "r", "f"]) == "↓←↑→→↑"
+    assert display.convert_moves_to_arrows(["r", "f", "l", "f", "l", "b", "r"]) == "→↑←↑←↓→"
+    assert display.convert_moves_to_arrows(["r", "f", "l", "f", "l", "b", "r"] * 3) == "...↑←↑←↓→→↑←↑←↓→→↑←↑←↓→"
 
     # Random Assortment of Moves
     mock_con_ar_short = mock_moves_list_gen(10) 
@@ -213,30 +213,30 @@ def test_convert_to_arrows() -> None:
     mock_con_ar_very_long = mock_moves_list_gen(10**4)
     mock_con_ar_very_very_long = mock_moves_list_gen(10**6)
 
-    assert display.convert_to_arrows(mock_con_ar_short) == ''.join(conversion[mock_con_ar_short[i]] for i in range(10))
-    assert display.convert_to_arrows(mock_con_ar_medium) == '...' + ''.join(
+    assert display.convert_moves_to_arrows(mock_con_ar_short) == ''.join(conversion[mock_con_ar_short[i]] for i in range(10))
+    assert display.convert_moves_to_arrows(mock_con_ar_medium) == '...' + ''.join(
         conversion[mock_con_ar_medium[i]] for i in range(-1,-21,-1)
         )[::-1]
-    assert display.convert_to_arrows(mock_con_ar_long) == '...' + ''.join(
+    assert display.convert_moves_to_arrows(mock_con_ar_long) == '...' + ''.join(
         conversion[mock_con_ar_long[i]] for i in range(-1,-21,-1)
         )[::-1]
-    assert display.convert_to_arrows(mock_con_ar_very_long) == '...' + ''.join(
+    assert display.convert_moves_to_arrows(mock_con_ar_very_long) == '...' + ''.join(
         conversion[mock_con_ar_very_long[i]] for i in range(-1,-21,-1)
         )[::-1]
-    assert display.convert_to_arrows(mock_con_ar_very_very_long) == '...' + ''.join(
+    assert display.convert_moves_to_arrows(mock_con_ar_very_very_long) == '...' + ''.join(
         conversion[mock_con_ar_very_very_long[i]] for i in range(-1,-21,-1)
         )[::-1]
 
 
     # Improbable Edge Case: Input Not in Conversion (Raises KeyError)
     with pytest.raises(KeyError):
-        assert display.convert_to_arrows(["x"])
-        assert display.convert_to_arrows(["x", "s", "q"])
-        assert display.convert_to_arrows(["x", "l", "l"])
-        assert display.convert_to_arrows(["l", "x", "l"])
-        assert display.convert_to_arrows(["l"] + ["x"] * 10**8 + ["r"])
-        assert display.convert_to_arrows([""])
-        assert display.convert_to_arrows([])
+        assert display.convert_moves_to_arrows(["x"])
+        assert display.convert_moves_to_arrows(["x", "s", "q"])
+        assert display.convert_moves_to_arrows(["x", "l", "l"])
+        assert display.convert_moves_to_arrows(["l", "x", "l"])
+        assert display.convert_moves_to_arrows(["l"] + ["x"] * 10**8 + ["r"])
+        assert display.convert_moves_to_arrows([""])
+        assert display.convert_moves_to_arrows([])
 
 
 

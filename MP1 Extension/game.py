@@ -18,7 +18,14 @@ from typing import Self, Iterable, Generator
 
 
 class Game:
+    """This is the Game class. When a valid filename is given, it will
+    initialize a level based on the data found in the specific stage
+    file like the rows, maximum amount of moves and the puzzle grid.
+    The main game loop and input handling are encapsulated inside as
+    class methods.
+    """
     def __init__(self, filename: str):
+        # Takes in a filename, initializes the Game object
         self.level_data = Level(self, filename)
         self.display_manager = DisplayManager(self)
 
@@ -28,18 +35,20 @@ class Game:
         self.current_move: str = ""
         self.previous_moves: list[str] = []
 
-    def play(self):
+    def play(self) -> None:
+        """Encompasses the main game loop."""
         while not self.is_end_state():
             self.display_manager.display()
 
             player_input = self.get_input(
-                input("Enter direction: "), set(DIRECTION_MAP.keys())
+                input("Enter direction: "), set(DIRECTION_MAP.keys() + 'Q')
                 )
 
-            for move in self.get_moves_to_process(player_input, self.moves):
-                if move == "Q":
+            if player_input == "Q":
                     break
-                elif move in DIRECTION_MAP:
+
+            for move in self.get_moves_to_process(player_input, self.moves):
+                if move in DIRECTION_MAP:
                     self.current_move = DIRECTION_MAP[move]
                     self.previous_moves.append(move)
                     self.moves -= 1
@@ -75,6 +84,10 @@ class Game:
                 break
 
     def process_move(self, direction: Direction):
+        """Given a direction, move the movable objects onto that
+        direction until all are blocked. Update the display for each
+        movement done. 
+        """
         rows = self.level_data.rows
         cols = self.level_data.cols
 
@@ -95,8 +108,8 @@ class Game:
             time.sleep(Config.MOVE_DELAY)
 
     def get_range(self, increment: Direction) -> range:
-        """Returns the corresponding iteration order of the rows and
-        cols given a direction.
+        """Returns the corresponding iteration order of every movable
+        object still in the grid given a direction.
         """
         match increment:
             case Direction.FORWARD | Direction.LEFT:
@@ -107,16 +120,25 @@ class Game:
                     )
 
     def is_end_state(self) -> bool:
+        """End state detection if there are no moves left or if there are
+        no more movables in the grid.
+        """
         return self.moves <= 0 or self.no_movables_left()
 
-    def is_inside(self, new_row: int, rows: int, new_col: int,
+    def is_inside(self, new_row: int, new_col: int, rows: int,
                   cols: int) -> bool:
+        """Checks if the neighboring block to the movable is inside
+        the grid or not before checking if the neighbor can be moved
+        onto.
+        """
         if 0 <= new_row < rows and 0 <= new_col < cols:
             neighbor: Block = self.grid[new_row][new_col]
+            return self.is_movable_to(neighbor)
+        else:
+            return False
 
-        return self.match_neighbor(neighbor)
-
-    def match_neighbor(self, neighbor) -> bool:
+    def is_movable_to(self, neighbor) -> bool:
+        """Checks if neighboring block can be moved onto."""
         match neighbor._type:
             case BlockType.FLOOR | BlockType.VOID | BlockType.GOAL:
                 return True
@@ -124,6 +146,10 @@ class Game:
                 return False
 
     def all_objects_blocked(self, rows, cols, direction: Direction) -> bool:
+        """Checks if every movable in the grid can move or not. If
+        True, the turn continues. If False, the turn ends and a new
+        move is processed.
+        """
         for x in self.get_range(direction):
             i, j = self.level_data.movables_positions[x]
             block = self.grid[i][j]
@@ -131,7 +157,7 @@ class Game:
             (new_row, new_col) = direction.value
             new_row += i
             new_col += j
-            if self.is_inside(new_row, rows, new_col, cols):
+            if self.is_inside(new_row, new_col, rows, cols):
                 return False
             else:
                 continue
@@ -139,6 +165,7 @@ class Game:
         return True
 
     def no_movables_left(self) -> bool:
+        """Checks if there are still movable objects in the grid."""
         for row in self.grid:
             for block in row:
                 if block._type == BlockType.MOVABLE:
@@ -196,7 +223,7 @@ class Block:
         self.row = row
         self.col = col
 
-    def move(self, direction: Direction, x: int):
+    def move(self, direction: Direction, x: int) -> None:
         (row, col) = direction.value
         self.new_row = self.row + row
         self.new_col = self.col + col
@@ -205,7 +232,7 @@ class Block:
                 0 <= self.new_col < self.game.level_data.cols):
             self.on_collision(self.game.grid[self.new_row][self.new_col], x)
 
-    def on_collision(self, neighbor: Self, x: int):
+    def on_collision(self, neighbor: Self, x: int) -> None:
         assert self._type == BlockType.MOVABLE
         # print("Yes i am egg")
         # print("Neighbor type is", neighbor._type)
@@ -225,11 +252,11 @@ class Block:
                 self.game.score += Config.ADD_SCORE + self.game.moves + 1
                 self.game.remove_movables.append(x)
 
-    def _delete(self):
+    def _delete(self) -> None:
         self._change_block_to(Sprite.GRASS)
         self.game.score += Config.SUBSTRACT_SCORE
 
-    def _change_block_to(self, sprite: str):
+    def _change_block_to(self, sprite: str) -> None:
         (name, block_type) = BLOCK_MAP[sprite]
 
         # print(f"Changing {repr(self.name)} block to", name)
