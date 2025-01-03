@@ -259,7 +259,7 @@ class Level:
                 self.max_moves = int(file.readline())
 
                 for row in range(self.rows):
-                    line = file.readline().strip()
+                    line = file.readline().strip('\n')
                     grid_row = [
                         self._create_block(char, row, col, self.game)
                         for (col, char) in enumerate(line)
