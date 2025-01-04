@@ -41,18 +41,18 @@ class Game:
             self.display_manager.display()
 
             player_input = self.get_input(
-                input("Enter direction: "), set(DIRECTION_MAP.keys() + 'Q')
+                input("Enter direction: "), set('lfrbQ')
                 )
 
             if player_input == "Q":
-                    break
+                break
 
             for move in self.get_moves_to_process(player_input, self.moves):
                 if move in DIRECTION_MAP:
-                    self.current_move = DIRECTION_MAP[move]
+                    self.move_dir: Direction = DIRECTION_MAP[move]
                     self.previous_moves.append(move)
                     self.moves -= 1
-                    self.process_move(self.current_move)
+                    self.process_move(self.move_dir)
                 else:
                     print("Invalid Move")
 
@@ -86,7 +86,7 @@ class Game:
     def process_move(self, direction: Direction):
         """Given a direction, move the movable objects onto that
         direction until all are blocked. Update the display for each
-        movement done. 
+        movement done.
         """
         rows = self.level_data.rows
         cols = self.level_data.cols
@@ -175,14 +175,20 @@ class Game:
 
 
 class DisplayManager:
+    """Creates a DisplayManager instance that is passed to the Game
+    object. Main function is showing the player the game state by
+    printing the grid and specific level data in the terminal.
+    """
     def __init__(self, game: Game):
         self.game = game
 
     def display(self):
+        """Parent function to the level and status displays"""
         self.display_level()
         self.display_status()
 
     def display_level(self):
+        """Prints the grid as rows of strings."""
         self.clear_screen()
         grid = self.game.grid
         print()
@@ -191,6 +197,7 @@ class DisplayManager:
             print("".join(block.sprite for block in row))
 
     def display_status(self) -> None:
+        """Displays the player's current score and moves."""
         print(f"Score: {self.game.score}")
         print(f"Moves: {self.game.moves}/{self.game.level_data.max_moves}")
         print(f"Previous Moves: {self.convert_moves_to_arrows(
@@ -198,6 +205,7 @@ class DisplayManager:
             )}")
 
     def clear_screen(self) -> None:
+        """Clears the previous screen in terminal."""
         if sys.stdout.isatty():
             clear_cmd = "cls" if os.name == "nt" else "clear"
             subprocess.run([clear_cmd], shell=True)
@@ -214,6 +222,10 @@ class DisplayManager:
 
 
 class Block:
+    """Initializes a Block object that has attributes that can be
+    modified as the game progresses. An instance is created by a Level
+    which in turn is initialized by a Game object.
+    """
     def __init__(self, name: str, sprite: str, _type: BlockType, row: int,
                  col: int, game: Game):
         self.game = game
@@ -224,6 +236,9 @@ class Block:
         self.col = col
 
     def move(self, direction: Direction, x: int) -> None:
+        """Given a direction and index value, move the Movable to a
+        new position based on the direction.
+        """
         (row, col) = direction.value
         self.new_row = self.row + row
         self.new_col = self.col + col
@@ -233,6 +248,9 @@ class Block:
             self.on_collision(self.game.grid[self.new_row][self.new_col], x)
 
     def on_collision(self, neighbor: Self, x: int) -> None:
+        """Checks the neighbor of the Movable and determines what to
+        do depending on the BlockType.
+        """
         assert self._type == BlockType.MOVABLE
         # print("Yes i am egg")
         # print("Neighbor type is", neighbor._type)
@@ -253,10 +271,12 @@ class Block:
                 self.game.remove_movables.append(x)
 
     def _delete(self) -> None:
+        """Converts Block to Grass and subtracts score."""
         self._change_block_to(Sprite.GRASS)
         self.game.score += Config.SUBSTRACT_SCORE
 
     def _change_block_to(self, sprite: str) -> None:
+        """Changes current Block to the passed block character."""
         (name, block_type) = BLOCK_MAP[sprite]
 
         # print(f"Changing {repr(self.name)} block to", name)
@@ -267,6 +287,10 @@ class Block:
 
 
 class Level:
+    """Gathers the data stored in a specific file. The Level object
+    also creates a new grid filled with Block objects based on
+    information from the sprite in connection with util.py.
+    """
     def __init__(self, game: Game, filename: str, folder: str = "levels"):
         self.grid: list[list[Block]] = []
         self.rows: int = 0
@@ -278,6 +302,9 @@ class Level:
         self._load_level(filename, folder)
 
     def _load_level(self, filename: str, folder: str) -> None:
+        """Given a filename, reads the stage data inside the file and
+        generates a grid with Block objects.
+        """
         file_path = os.path.join(folder, filename)
 
         try:
@@ -301,6 +328,9 @@ class Level:
 
     def _create_block(
             self, char: str, row: int, col: int, game: Game) -> Block:
+        """Creates a Block object that has a given set of attributes
+        based on the name, Sprite, BlockType andposition in the grid.
+        """
         (name, block_type) = BLOCK_MAP[char]
         if block_type == BlockType.MOVABLE:
             self.movables_positions.append((row, col))
