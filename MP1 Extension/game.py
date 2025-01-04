@@ -183,7 +183,7 @@ class DisplayManager:
         self.game = game
 
     def display(self):
-        """Parent function to the level and status displays"""
+        """Parent function to the level and status displays."""
         self.display_level()
         self.display_status()
 
